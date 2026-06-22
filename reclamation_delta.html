@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RECLAMATION IDLE // PROJECT DELTA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d0d0b;
+  --panel:    #111110;
+  --border:   #2a2a28;
+  --text:     #c8c4b8;
+  --dim:      #6b6860;
+  --bright:   #e8e4d8;
+  --green:    #1D9E75;
+  --amber:    #BA7517;
+  --red:      #E24B4A;
+  --blue:     #378ADD;
+  --mono:     'Share Tech Mono', monospace;
+  --ui:       'Exo 2', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 40px 32px 60px;
+}
+
+/* ── header ─────────────────────────────── */
+.header { margin-bottom: 28px; }
+.header-title {
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--bright);
+}
+.header-title span { color: var(--green); }
+.header-sub {
+  font-size: 9px;
+  color: var(--dim);
+  margin-top: 5px;
+  letter-spacing: 0.5px;
+}
+
+/* ── timeline ────────────────────────────── */
+.timeline {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 28px;
+  font-size: 8px;
+  color: var(--dim);
+}
+.tl-node { text-align: center; min-width: 62px; }
+.tl-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin: 0 auto 4px;
+}
+.tl-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 16px;
+}
+.tl-ver { color: var(--bright); margin-top: 1px; font-size: 7px; }
+
+/* ── grid ────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: 156px 208px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.col {
+  background: var(--panel);
+  border-radius: 4px;
+  padding: 14px;
+  border-left: 3px solid var(--border);
+}
+.col-patch  { border-left-color: var(--red); }
+.col-v03    { border-left-color: var(--green); }
+.col-v04    { border-left-color: var(--blue); }
+
+.col-stamp {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+}
+.col-title {
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--bright);
+  margin: 3px 0 2px;
+}
+.col-tag {
+  font-size: 9px;
+  margin-bottom: 14px;
+}
+.tag-red   { color: var(--red); }
+.tag-green { color: var(--green); }
+.tag-blue  { color: var(--blue); }
+
+/* ── categories ──────────────────────────── */
+.cat {
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  color: var(--dim);
+  margin: 11px 0 5px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+.cat:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+/* ── items ───────────────────────────────── */
+.item {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  margin: 3.5px 0;
+  font-size: 10px;
+  color: #9c9a92;
+  line-height: 1.45;
+}
+.dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4.5px;
+}
+.d-fix   { background: var(--red); }
+.d-world { background: var(--green); }
+.d-econ  { background: var(--amber); }
+.d-sys   { background: var(--blue); }
+.d-ui    { background: var(--dim); }
+.d-ach   { background: var(--bright); }
+
+/* ── v0.4 sub-grid ───────────────────────── */
+.v04-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+/* ── legend ──────────────────────────────── */
+.legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 9px;
+  color: var(--dim);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-item .dot { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">RECLAMATION IDLE <span>//</span> PROJECT DELTA</div>
+  <div class="header-sub">All changes since first build &nbsp;·&nbsp; May 12 → Jun 22, 2026</div>
+</div>
+
+<div class="timeline">
+  <div class="tl-node">
+    <div class="tl-dot" style="background:var(--border)"></div>
+    <div>MAY 12</div>
+    <div class="tl-ver">FIRST BUILD</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-node">
+    <div class="tl-dot" style="background:var(--red)"></div>
+    <div>JUN 19</div>
+    <div class="tl-ver" style="color:var(--red)">PATCH</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-node">
+    <div class="tl-dot" style="background:var(--green)"></div>
+    <div>JUN 20</div>
+    <div class="tl-ver" style="color:var(--green)">v0.3</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-node">
+    <div class="tl-dot" style="background:var(--blue);width:10px;height:10px"></div>
+    <div>CURRENT</div>
+    <div class="tl-ver" style="color:var(--blue)">v0.4</div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- PATCH -->
+  <div class="col col-patch">
+    <div class="col-stamp">19 JUN 2026</div>
+    <div class="col-title">Bug patch</div>
+    <div class="col-tag tag-red">8 fixes</div>
+    <div class="cat">FIXES</div>
+    <div class="item"><div class="dot d-fix"></div>Decryption — softlock resolved</div>
+    <div class="item"><div class="dot d-fix"></div>Return to menu — auto-saves</div>
+    <div class="item"><div class="dot d-fix"></div>Bot stall on load</div>
+    <div class="item"><div class="dot d-fix"></div>Offline tiles — instant colour</div>
+    <div class="item"><div class="dot d-fix"></div>Offline bots — 44% overestimate</div>
+    <div class="item"><div class="dot d-fix"></div>Gather UI — +3 not +2</div>
+    <div class="item"><div class="dot d-fix"></div>Map drag — edge clamping</div>
+    <div class="item"><div class="dot d-fix"></div>Geolocation — race condition</div>
+  </div>
+
+  <!-- v0.3 -->
+  <div class="col col-v03">
+    <div class="col-stamp">20 JUN 2026 · v0.3</div>
+    <div class="col-title">Make Contact</div>
+    <div class="col-tag tag-green">first ending</div>
+    <div class="cat">WORLD</div>
+    <div class="item"><div class="dot d-world"></div>Antipode finale — MAKE CONTACT</div>
+    <div class="item"><div class="dot d-world"></div>Two endings — peace / dominion</div>
+    <div class="item"><div class="dot d-world"></div>Endings persist across prestige</div>
+    <div class="item"><div class="dot d-world"></div>Antipode placed past Ground Zero</div>
+    <div class="cat">DIFFICULTY</div>
+    <div class="item"><div class="dot d-econ"></div>Distance scales tile reclaim effort</div>
+    <div class="cat">SHOP — 7 NEW</div>
+    <div class="item"><div class="dot d-econ"></div>Biome Anchor — 5th spreader</div>
+    <div class="item"><div class="dot d-econ"></div>Bloom Density — spreader yield</div>
+    <div class="item"><div class="dot d-econ"></div>Root Network Mapping — radius</div>
+    <div class="item"><div class="dot d-econ"></div>Salvage Optimisation</div>
+    <div class="item"><div class="dot d-econ"></div>Conveyor Calibration</div>
+    <div class="item"><div class="dot d-econ"></div>Reactor Overclock</div>
+    <div class="item"><div class="dot d-econ"></div>Vault Reinforcement</div>
+    <div class="cat">SYSTEM</div>
+    <div class="item"><div class="dot d-sys"></div>Prestige confirmation dialog</div>
+    <div class="item"><div class="dot d-sys"></div>LP — dirt + recovering tiles count</div>
+    <div class="item"><div class="dot d-sys"></div>Old saves retired on update</div>
+  </div>
+
+  <!-- v0.4 -->
+  <div class="col col-v04">
+    <div class="col-stamp">CURRENT · v0.4</div>
+    <div class="col-title">Regions build</div>
+    <div class="col-tag tag-blue">SAVE_VERSION 3</div>
+    <div class="v04-inner">
+
+      <div>
+        <div class="cat" style="margin-top:0;padding-top:0;border-top:none">WORLD — 8 REGIONS</div>
+        <div class="item"><div class="dot d-world"></div>REGION_DEFS[] — full world defined</div>
+        <div class="item"><div class="dot d-world"></div>REGIONS[] — headless ticking</div>
+        <div class="item"><div class="dot d-world"></div>Unlock: 50 thriving + 60% prior</div>
+        <div class="item"><div class="dot d-world"></div>distOffset cumulative, never resets</div>
+        <div class="item"><div class="dot d-world"></div>Region 4 = Ground Zero, 8 = Antipode</div>
+        <div class="cat">TERRAIN</div>
+        <div class="item"><div class="dot d-world"></div>TERRAIN object — 6+ biome types</div>
+        <div class="item"><div class="dot d-world"></div>tileTerrain[idx] per-tile assignment</div>
+        <div class="item"><div class="dot d-world"></div>4 bot fleets — soil/ash/sand/water</div>
+        <div class="item"><div class="dot d-world"></div>Per-biome tile colour palettes</div>
+        <div class="cat">NEW SHOP — 7</div>
+        <div class="item"><div class="dot d-econ"></div>All-Terrain Treads</div>
+        <div class="item"><div class="dot d-econ"></div>Swarm Overclock</div>
+        <div class="item"><div class="dot d-econ"></div>Reclaimer Bounty</div>
+        <div class="item"><div class="dot d-econ"></div>Restoration Index</div>
+        <div class="item"><div class="dot d-econ"></div>Reclamation Logistics</div>
+        <div class="item"><div class="dot d-econ"></div>Manual Override</div>
+        <div class="item"><div class="dot d-econ"></div>Bunker AI Tuning</div>
+      </div>
+
+      <div>
+        <div class="cat" style="margin-top:0;padding-top:0;border-top:none">NEW LEGACY — 11</div>
+        <div class="item"><div class="dot d-econ"></div>omniBoost</div>
+        <div class="item"><div class="dot d-econ"></div>distLegacy</div>
+        <div class="item"><div class="dot d-econ"></div>startParts</div>
+        <div class="item"><div class="dot d-econ"></div>offlineLegacy</div>
+        <div class="item"><div class="dot d-econ"></div>autoReclaim</div>
+        <div class="item"><div class="dot d-econ"></div>fleetCap</div>
+        <div class="item"><div class="dot d-econ"></div>overgrowth</div>
+        <div class="item"><div class="dot d-econ"></div>salvageSingularity</div>
+        <div class="item"><div class="dot d-econ"></div>timeCapsule</div>
+        <div class="item"><div class="dot d-econ"></div>livingNetwork</div>
+        <div class="item"><div class="dot d-econ"></div>overdrive</div>
+        <div class="cat">UI / VISUAL</div>
+        <div class="item"><div class="dot d-ui"></div>Theme system — PHOSPHOR, AMBER CRT…</div>
+        <div class="item"><div class="dot d-ui"></div>Directive box — objective widget</div>
+        <div class="item"><div class="dot d-ui"></div>Log tabs — narrative / highlight</div>
+        <div class="item"><div class="dot d-ui"></div>Map — scanlines, tint, sweep</div>
+        <div class="item"><div class="dot d-ui"></div>Menu — RECON FEED aesthetic</div>
+        <div class="item"><div class="dot d-ui"></div>Easter eggs in log</div>
+        <div class="cat">SYSTEM</div>
+        <div class="item"><div class="dot d-sys"></div>AB{} achievement bonus accumulator</div>
+        <div class="item"><div class="dot d-sys"></div>powerOutput() extracted</div>
+        <div class="item"><div class="dot d-sys"></div>tileEl() element cache</div>
+        <div class="item"><div class="dot d-sys"></div>G_simSpeed sim control</div>
+        <div class="item"><div class="dot d-sys"></div>3×3 settlement + bunker zones</div>
+        <div class="item"><div class="dot d-sys"></div>SAVE_VERSION 1 → 3</div>
+        <div class="cat">ACHIEVEMENTS</div>
+        <div class="item"><div class="dot d-ach"></div>15 → 16 total</div>
+        <div class="item"><div class="dot d-ach"></div>Completionist — all others → +50%</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot d-fix"></div>fix</div>
+  <div class="legend-item"><div class="dot d-world"></div>world</div>
+  <div class="legend-item"><div class="dot d-econ"></div>economy</div>
+  <div class="legend-item"><div class="dot d-sys"></div>system</div>
+  <div class="legend-item"><div class="dot d-ui"></div>ui</div>
+  <div class="legend-item"><div class="dot d-ach"></div>achievement</div>
+</div>
+
+</body>
+</html>
