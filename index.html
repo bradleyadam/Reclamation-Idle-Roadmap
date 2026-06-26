@@ -1,511 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RECLAMATION IDLE // ROADMAP</title>
-<style>
-/* ============================================================
-   RECLAMATION IDLE — INTERACTIVE ROADMAP
-   Single file. No external assets.
-   Edit the ROADMAP array in the <script> block to maintain it.
-   ------------------------------------------------------------
-   status: 'thriving'(shipped) | 'recovering'(in progress) | 'dormant'(planned)
-   A build has EITHER  changes:[{cat,text}]            (simple, grouped by category)
-                  OR   sections:[{name,changes:[...]}] (rich, grouped by feature area)
-   cat: fix | world | economy | system | ui | achievement
-   ============================================================ */
-
-:root{
-  --bg:        #060a07;
-  --bg-panel:  #0c130e;
-  --line:      #15241a;
-  --grid:      #0e1812;
-
-  --thriving:  #4dffa6;
-  --thriving-glow: #00ff9c;
-  --recovering:#ffb454;
-  --recovering-glow:#ff8a00;
-  --dormant:   #5d6f63;
-
-  --ink:       #cdeede;
-  --ink-dim:   #7e9c8b;
-  --ink-faint: #4d6056;
-
-  --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--mono);}
-body{
-  min-height:100vh;line-height:1.5;font-size:14px;
-  background-image:
-    linear-gradient(transparent 0%, rgba(0,255,156,.012) 50%, transparent 100%),
-    radial-gradient(120% 80% at 50% -10%, rgba(0,255,156,.05), transparent 60%);
-  -webkit-font-smoothing:antialiased;
-}
-
-/* ---- CRT overlay ---- */
-.crt{position:fixed;inset:0;pointer-events:none;z-index:9999;}
-.crt::before{content:"";position:absolute;inset:0;
-  background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 3px);
-  background-size:100% 3px;animation:scan 8s linear infinite;}
-.crt::after{content:"";position:absolute;inset:0;
-  background:radial-gradient(140% 120% at 50% 50%, transparent 60%, rgba(0,0,0,.55) 100%);}
-@keyframes scan{from{background-position:0 0}to{background-position:0 100px}}
-
-.wrap{max-width:880px;margin:0 auto;padding:40px 22px 120px;}
-
-/* ---- masthead ---- */
-header{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:8px;}
-.eyebrow{font-size:11px;letter-spacing:.32em;color:var(--ink-dim);text-transform:uppercase;}
-h1{font-size:clamp(26px,6vw,46px);letter-spacing:.04em;margin:.18em 0 .1em;font-weight:700;
-  color:var(--thriving);text-shadow:0 0 14px rgba(0,255,156,.35);}
-h1 .slash{color:var(--ink-faint);font-weight:400;}
-.tagline{font-size:12px;color:var(--ink-dim);letter-spacing:.06em;}
-.cursor{display:inline-block;width:8px;height:14px;background:var(--thriving);margin-left:4px;vertical-align:-2px;animation:blink 1.1s steps(1) infinite;}
-@keyframes blink{50%{opacity:0}}
-
-/* ---- restoration index ---- */
-.index{margin:26px 0 4px;}
-.index-head{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px;}
-.index-head b{color:var(--thriving);font-size:13px;letter-spacing:.1em;}
-.meter{height:14px;border:1px solid var(--line);background:var(--grid);position:relative;overflow:hidden;}
-.meter-fill{height:100%;width:0;background:repeating-linear-gradient(90deg,var(--thriving) 0 7px,var(--thriving-glow) 7px 9px);box-shadow:0 0 12px rgba(0,255,156,.5);transition:width 1.1s cubic-bezier(.2,.8,.2,1);}
-.meter-recov{position:absolute;top:0;height:100%;background:repeating-linear-gradient(90deg,rgba(255,180,84,.55) 0 7px,rgba(255,138,0,.55) 7px 9px);transition:width 1.1s cubic-bezier(.2,.8,.2,1);}
-
-/* ---- controls ---- */
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:26px 0 24px;}
-.controls .lbl{font-size:10px;letter-spacing:.22em;color:var(--ink-faint);text-transform:uppercase;margin-right:4px;}
-.chip{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);background:transparent;border:1px solid var(--line);padding:5px 11px;cursor:pointer;transition:all .15s;}
-.chip:hover{border-color:var(--ink-faint);color:var(--ink);}
-.chip[aria-pressed="true"]{color:var(--bg);border-color:var(--thriving);background:var(--thriving);text-shadow:none;box-shadow:0 0 10px rgba(0,255,156,.3);}
-.chip:focus-visible{outline:2px solid var(--thriving);outline-offset:2px;}
-.chip.reset{margin-left:auto;color:var(--ink-faint);}
-.chip.reset:hover{color:var(--recovering);border-color:var(--recovering);}
-
-/* ---- expand/collapse all ---- */
-.toolbar{display:flex;gap:14px;margin-bottom:24px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;}
-.toolbar button{background:none;border:none;color:var(--ink-faint);font-family:var(--mono);cursor:pointer;letter-spacing:inherit;text-transform:inherit;padding:0;}
-.toolbar button:hover{color:var(--thriving);}
-.toolbar button:focus-visible{outline:2px solid var(--thriving);outline-offset:2px;}
-
-/* ---- legend ---- */
-.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:34px;}
-.legend span{display:inline-flex;align-items:center;gap:7px;}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
-.dot.thriving{background:var(--thriving);box-shadow:0 0 8px var(--thriving-glow);}
-.dot.recovering{background:var(--recovering);box-shadow:0 0 8px var(--recovering-glow);}
-.dot.dormant{background:transparent;border:1px solid var(--dormant);}
-
-/* ---- timeline ---- */
-.timeline{position:relative;padding-left:34px;}
-.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
-  background:linear-gradient(to bottom,var(--thriving) 0%,var(--thriving) var(--front,40%),var(--dormant) calc(var(--front,40%) + 14%),var(--grid) 100%);
-  box-shadow:0 0 10px rgba(0,255,156,.25);}
-
-/* ---- date dividers ---- */
-.year-head{display:flex;align-items:center;gap:14px;margin:30px 0 6px;}
-.year-head:first-child{margin-top:4px;}
-.year-head .yr{font-size:22px;font-weight:700;letter-spacing:.14em;color:var(--thriving);
-  text-shadow:0 0 12px rgba(0,255,156,.3);white-space:nowrap;}
-.year-head .rule{flex:1;height:1px;background:var(--line);}
-.year-head.future .yr{font-size:13px;letter-spacing:.28em;color:var(--dormant);text-shadow:none;}
-.month-head{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-dim);
-  margin:18px 0 9px;}
-
-.node{position:relative;margin-bottom:14px;}.node .marker{position:absolute;left:-34px;top:14px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid var(--dormant);z-index:2;transition:all .2s;}
-.node.thriving .marker{border-color:var(--thriving);background:var(--thriving);box-shadow:0 0 12px var(--thriving-glow);}
-.node.recovering .marker{border-color:var(--recovering);background:var(--recovering);box-shadow:0 0 14px var(--recovering-glow);animation:pulse 1.8s ease-in-out infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 8px var(--recovering-glow)}50%{box-shadow:0 0 20px var(--recovering-glow)}}
-
-.node-head{width:100%;text-align:left;cursor:pointer;background:var(--bg-panel);border:1px solid var(--line);border-left-width:3px;border-left-color:var(--dormant);padding:13px 16px;display:flex;align-items:center;gap:14px;color:inherit;font-family:var(--mono);transition:all .18s;}
-.node.thriving .node-head{border-left-color:var(--thriving);}
-.node.recovering .node-head{border-left-color:var(--recovering);}
-.node-head:hover{background:#10180f;border-color:var(--ink-faint);}
-.node-head:focus-visible{outline:2px solid var(--thriving);outline-offset:2px;}
-
-.node-date{font-size:10px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;min-width:62px;flex-shrink:0;}
-.node-ver{font-size:16px;font-weight:700;letter-spacing:.04em;flex-shrink:0;min-width:50px;}
-.node.thriving .node-ver{color:var(--thriving);}
-.node.recovering .node-ver{color:var(--recovering);}
-.node.dormant .node-ver{color:var(--dormant);}
-.node-title{font-size:13px;color:var(--ink);letter-spacing:.02em;flex:1;min-width:0;}
-.node-title .sub{color:var(--ink-dim);font-size:11px;}
-.node-current{font-size:8px;letter-spacing:.2em;color:var(--recovering);border:1px solid var(--recovering);padding:2px 6px;margin-left:8px;white-space:nowrap;}
-.node-status{font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:3px 8px;border:1px solid currentColor;flex-shrink:0;}
-.node.thriving .node-status{color:var(--thriving);}
-.node.recovering .node-status{color:var(--recovering);}
-.node.dormant .node-status{color:var(--dormant);}
-.chev{flex-shrink:0;color:var(--ink-faint);font-size:11px;transition:transform .2s;}
-.node.open .chev{transform:rotate(90deg);color:var(--ink);}
-
-/* ---- detail body ---- */
-.body{display:none;border:1px solid var(--line);border-top:none;background:var(--grid);padding:4px 16px 12px;}
-.node.open .body{display:block;}
-
-/* simple (category-grouped) */
-.cat-group{padding:12px 0 6px;border-bottom:1px dashed var(--line);}
-.cat-group:last-child{border-bottom:none;}
-.cat-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:7px;color:var(--ink-dim);}
-.cat-swatch{width:8px;height:8px;display:inline-block;}
-
-/* rich (feature sections) */
-.section{padding:13px 0 8px;border-bottom:1px dashed var(--line);}
-.section:last-child{border-bottom:none;}
-.section-head{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--thriving);margin-bottom:9px;opacity:.92;}
-.node.dormant .section-head{color:var(--dormant);}
-
-ul.changes{list-style:none;margin:0;padding:0;}
-ul.changes li{font-size:13px;color:var(--ink);padding:3px 0 3px 16px;position:relative;border-left:2px solid var(--c,var(--ink-faint));margin-left:2px;}
-.node.dormant ul.changes li{color:var(--ink-dim);}
-ul.changes li .tick{position:absolute;left:6px;color:var(--c,var(--ink-faint));opacity:.0}
-
-/* category accent colours */
-.c-fix        {--c:#ff6b6b}
-.c-world      {--c:#4dffa6}
-.c-economy    {--c:#ffd24d}
-.c-system     {--c:#6bb8ff}
-.c-ui         {--c:#c98bff}
-.c-achievement{--c:#ffb454}
-.cat-swatch.c-fix{background:#ff6b6b}.cat-swatch.c-world{background:#4dffa6}
-.cat-swatch.c-economy{background:#ffd24d}.cat-swatch.c-system{background:#6bb8ff}
-.cat-swatch.c-ui{background:#c98bff}.cat-swatch.c-achievement{background:#ffb454}
-
-/* filtered states */
-.cat-group.hidden,.section.hidden,li.hidden{display:none;}
-.node.dimmed{opacity:.3;filter:saturate(.4);}
-.node.dimmed .marker{filter:saturate(.3);}
-
-footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);font-size:10px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-
-@media (max-width:560px){
-  .node-head{flex-wrap:wrap;gap:8px 12px;}
-  .node-title{flex-basis:100%;order:3;}
-  .node-status{order:2;}
-}
-@media (prefers-reduced-motion: reduce){
-  *{animation:none !important;transition:none !important;}
-}
-</style>
+  <meta charset="utf-8">
+  <title>RECLAMATION IDLE // ROADMAP</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #060a07; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
+    #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #060a07; z-index: 9999; }
+    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
+    #__bundler_placeholder { color: #999; font-size: 14px; }
+  </style>
+  <noscript>
+    <style>#__bundler_loading { display: none; }</style>
+    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
+      This page requires JavaScript to display.
+    </div>
+  </noscript>
 </head>
 <body>
-<div class="crt" aria-hidden="true"></div>
-<div class="wrap">
-  <header>
-    <div class="eyebrow">BAQW STUDIOS // RECON FEED</div>
-    <h1>RECLAMATION IDLE<span class="slash"> // </span>ROADMAP</h1>
-    <div class="tagline">restoring a dead world, one build at a time<span class="cursor"></span></div>
-    <div class="index">
-      <div class="index-head"><span>RESTORATION INDEX</span><b id="indexPct">0%</b></div>
-      <div class="meter" role="progressbar" aria-label="Roadmap restoration index">
-        <div class="meter-recov" id="meterRecov"></div>
-        <div class="meter-fill" id="meterFill"></div>
-      </div>
-    </div>
-  </header>
-
-  <div class="controls" id="controls"><span class="lbl">FILTER</span></div>
-  <div class="toolbar"><button id="expandAll">[ + ] EXPAND ALL</button><button id="collapseAll">[ – ] COLLAPSE ALL</button></div>
-  <div class="legend">
-    <span><i class="dot thriving"></i> Thriving · shipped</span>
-    <span><i class="dot recovering"></i> Recovering · in progress</span>
-    <span><i class="dot dormant"></i> Dormant · planned</span>
-  </div>
-  <div class="timeline" id="timeline"></div>
-  <footer><span>BAQW STUDIOS</span><span id="stamp">// END OF FEED</span></footer>
+  <div id="__bundler_thumbnail">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect x="180" y="120" width="840" height="60" rx="4" fill="#4dffa6"></rect>
+    <rect x="180" y="300" width="60" height="60" rx="30" fill="#4dffa6"></rect>
+    <rect x="180" y="420" width="60" height="60" rx="30" fill="#ffb454"></rect>
+    <rect x="180" y="540" width="60" height="60" rx="30" fill="none" stroke="#5d6f63" stroke-width="6"></rect>
+    <rect x="300" y="312" width="720" height="36" rx="3" fill="#15241a"></rect>
+    <rect x="300" y="432" width="600" height="36" rx="3" fill="#15241a"></rect>
+    <rect x="300" y="552" width="500" height="36" rx="3" fill="#15241a"></rect>
+  </svg>
 </div>
+  <div id="__bundler_loading">Unpacking...</div>
 
-<script>
-/* ============================================================ DATA ============================================================ */
-const ROADMAP = [
-  { year:2025, month:"OCT", date:"12", ver:"PROTO", title:"Reclamation Idle — original prototype", sub:"Construct 2", status:"thriving",
-    changes:[
-      {cat:"world", text:"Scrap / crank reclaim mechanic"},
-      {cat:"world", text:"The original Construct 2 build — later rebuilt from scratch for v0.1"},
-    ]},
+  <script>
+    
+document.addEventListener('DOMContentLoaded', async function() {
+  const loading = document.getElementById('__bundler_loading');
+  function setStatus(msg) { if (loading) loading.textContent = msg; }
 
-  { year:2026, month:"MAY", date:"12", ver:"v0.1", title:"First build", sub:"the core loop", status:"thriving",
-    changes:[
-      {cat:"world", text:"Bunker + tile grid"},
-      {cat:"world", text:"Spreading reclamation across tiles"},
-      {cat:"world", text:"Bot mechanics — tiles reclaim over time"},
-      {cat:"world", text:"Live on itch.io"},
-    ]},
+  // Error sink persists across replaceWith since it's on window, not the DOM.
+  window.addEventListener('error', function(e) {
+    var p = document.body || document.documentElement;
+    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
+    d.id = '__bundler_err';
+    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
+    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
+      '[bundle] ' + (e.message || e.type) +
+      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
+  }, true);
 
-  { year:2026, month:"JUN", date:"12", ver:"v0.2", title:"Fragments & decryption", sub:"the story arrives", status:"thriving",
-    changes:[
-      {cat:"world", text:"Fragment codex — recover and decrypt fragments, with a typewriter reveal in the terminal"},
-      {cat:"world", text:"Narrative log — the story unfolds as you play"},
-      {cat:"world", text:"A distant signal — something on the far side of the planet is still transmitting"},
-      {cat:"economy", text:"Shop expands — collectors, spreaders and buildings (Power Core, Storage Vault, Research Lab, Comms Array)"},
-      {cat:"economy", text:"Prestige & Legacy — Ecological Memory, Salvage Instinct, Warm Start (20+ thriving to restore)"},
-      {cat:"system", text:"Place your bunker anywhere on the world (cosmetic); offline progress; menu music"},
-    ]},
+  try {
+    const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
+    const templateEl = document.querySelector('script[type="__bundler/template"]');
+    if (!manifestEl || !templateEl) {
+      setStatus('Error: missing bundle data');
+      console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
+      return;
+    }
 
-  { year:2026, month:"JUN", date:"19", ver:"PATCH", title:"Bug patch", sub:"8 fixes", status:"thriving",
-    changes:[
-      {cat:"fix", text:"Decryption — softlock resolved"},
-      {cat:"fix", text:"Return to menu — now auto-saves"},
-      {cat:"fix", text:"Bots no longer stall on load"},
-      {cat:"fix", text:"Offline tiles colour in instantly"},
-      {cat:"fix", text:"Offline bot progress no longer overestimated"},
-      {cat:"fix", text:"Gather readout corrected"},
-      {cat:"fix", text:"Map drag clamps to the edges"},
-      {cat:"fix", text:"Location prompt no longer misfires"},
-    ]},
+    const manifest = JSON.parse(manifestEl.textContent);
+    let template = JSON.parse(templateEl.textContent);
 
-  { year:2026, month:"JUN", date:"20", ver:"v0.3", title:"Make Contact", sub:"sandbox becomes a journey", status:"thriving",
-    changes:[
-      {cat:"world", text:"You can now reach the end — push the green out to the Antipode and ◉ MAKE CONTACT appears"},
-      {cat:"world", text:"Walk out of the bunker for the first time, decode the waiting transmission, and choose how the restored world ends"},
-      {cat:"world", text:"Two endings — and how you've played decides which you can reach"},
-      {cat:"economy", text:"Geography is the difficulty — the farther a tile is from the bunker, the more effort to reclaim; the frontier slows as it grows"},
-      {cat:"economy", text:"Reaching the Antipode now spans several restore points rather than a single afternoon — the curve the game always wanted"},
-      {cat:"economy", text:"Early-game shop filled out — fifth spreader (Biome Anchor) plus upgrade lines for spreaders, collectors and buildings"},
-      {cat:"economy", text:"Proper \"are you sure?\" confirmation before spending a restore point"},
-      {cat:"system", text:"Old saves retired automatically (quietly backed up) for a rebalance this large"},
-    ]},
+    const uuids = Object.keys(manifest);
+    setStatus('Unpacking ' + uuids.length + ' assets...');
 
-  { year:2026, month:"JUN", date:"22", ver:"v0.4", title:"The Regions Update", sub:"eight regions, terrain & themes", status:"thriving", current:true,
-    sections:[
-      { name:"Eight Regions & Feeds", changes:[
-        {cat:"world", text:"The world is now eight regions, unlocking outward from the bunker"},
-        {cat:"world", text:"Camera-feed switcher above the map — swap regions with a signal-static transition; each feed shows its live restore %"},
-        {cat:"world", text:"Regions you've unlocked keep being reclaimed while you watch another — and while you're away"},
-        {cat:"world", text:"A region nameplate fades in as you switch feeds"},
-        {cat:"economy", text:"Income is global — restored tiles across every region feed your resources, so expanding compounds"},
-        {cat:"world", text:"Each region unlocks as you restore the one before it"},
-        {cat:"economy", text:"Difficulty carries across regions — each new region starts harder than the last one ended"},
-      ]},
-      { name:"Terrain & Fleets", changes:[
-        {cat:"world", text:"Tiles now have terrain — soil, water, ash and sand — each with its own colours"},
-        {cat:"world", text:"Mixed regions show many colours at once: ash plains, blue rivers, green scrub on one map"},
-        {cat:"economy", text:"Each terrain has its own reclamation fleet instead of one bot type"},
-        {cat:"economy", text:"Fleets unlock alongside their regions; the spread phase is now REVIVE"},
-        {cat:"economy", text:"Per-fleet caps, each with their own Bay Expansions"},
-        {cat:"world", text:"Region 2 has a meandering river worked by the water fleet"},
-      ]},
-      { name:"Map & Visuals", changes:[
-        {cat:"ui", text:"The bunker now reads as a proper facility on the map, not a single pixel"},
-        {cat:"ui", text:"Themes restyle the interface only — never the land — so terrain stays readable"},
-      ]},
-      { name:"Economy — Upgrades, Legacy & Prestige", changes:[
-        {cat:"economy", text:"Upgrades are now repeatable — the old I / II caps are gone"},
-        {cat:"economy", text:"New upgrades — Reclaimer Bounty, All-Terrain Treads, Swarm Overclock, Manual Override, Restoration Index, Reclamation Logistics, Bunker AI Tuning"},
-        {cat:"economy", text:"Legacy is now prestige-only, spent on the restore screen and grouped into clear categories"},
-        {cat:"economy", text:"Legacy standouts — Overgrowth Engine (×2 RP), Salvage Singularity (×2 Parts), Time Capsule (no offline cap), Living Network (+output per region online)"},
-        {cat:"economy", text:"Prestige now rewards partly-restored tiles too, and previews exactly what you gain and keep"},
-      ]},
-      { name:"Idle & Time", changes:[
-        {cat:"economy", text:"Fast-forward speed control (1× / 2× / 4×); a legacy upgrade raises the cap further"},
-        {cat:"economy", text:"Offline progress — 8h base, extended by Storage Vault (removed entirely by Time Capsule); richer welcome-back summary"},
-        {cat:"ui", text:"Day/night cycle gently tints the map across each in-game day"},
-      ]},
-      { name:"Archive — Fragments, Achievements & Endings", changes:[
-        {cat:"achievement", text:"▤ ARCHIVE overlay with three tabs — Fragments, Achievements, Endings"},
-        {cat:"achievement", text:"Fragment codex — 13 fragments, a rereadable record; decrypt each to reveal its text and bonus"},
-        {cat:"achievement", text:"14 achievements, each a permanent bonus that carries across runs; hidden ones stay ???????? until earned"},
-        {cat:"achievement", text:"An endings gallery tracks which endings you've discovered"},
-        {cat:"system", text:"Achievements and endings you've seen are kept even if you start a new game"},
-        {cat:"ui", text:"Pop-up notifications for achievements and milestone moments"},
-      ]},
-      { name:"Main Menu & Onboarding", changes:[
-        {cat:"ui", text:"Menu is a composed recon dashboard — world thumbnail plus a status panel (run, tiles restored, regions online, signal)"},
-        {cat:"ui", text:"Tutorial shows once; HELP → RESET TUTORIAL replays it any time"},
-        {cat:"system", text:"Location asked once and remembered; new games skip the prompt"},
-        {cat:"ui", text:"Theme picker — Phosphor, Amber CRT, Cryo, Ultraviolet"},
-        {cat:"ui", text:"Hidden messages occasionally slip into the boot log"},
-        {cat:"economy", text:"Founder bonus — anyone with a pre-update save gets a permanent +10% output"},
-      ]},
-      { name:"Fixes", changes:[
-        {cat:"fix", text:"Fixed regions that could stall with reclaimable tiles left unworked"},
-        {cat:"fix", text:"Fixed newly-unlocked regions that wouldn't start reclaiming"},
-        {cat:"fix", text:"Changing your location in Settings no longer restarts the game"},
-        {cat:"fix", text:"Fixed progress from one region bleeding into another"},
-        {cat:"fix", text:"Fixed old saves showing broken restore-point costs, one-time upgrades not resetting, and a startup glitch"},
-      ]},
-    ]},
+    const blobUrls = {};
+    await Promise.all(uuids.map(async (uuid) => {
+      const entry = manifest[uuid];
+      try {
+        const binaryStr = atob(entry.data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
 
-  /* ---------- DORMANT / PLANNED ---------- */
-  { date:"PHASE 2", ver:"LIFE", title:"Regrowth", sub:"thriving is the start, not the finish", status:"dormant",
-    changes:[
-      {cat:"world", text:"A new LIFE tab joins your controls — guide regrowth across thriving land"},
-      {cat:"world", text:"Flora first — flowers and tufts, then trees, returning faster near other living ground"},
-      {cat:"world", text:"Forests rise where life runs deepest"},
-      {cat:"world", text:"Animal life returns once a region is richly regrown"},
-      {cat:"world", text:"A new per-region reading — Biodiversity — separate from how much land is thriving; a region can be all green but not yet teeming"},
-      {cat:"economy", text:"A second fill-bar to chase beyond reclamation"},
-    ]},
-  { date:"PHASE 3", ver:"BUILD", title:"Rebuild", sub:"life floods back — then starts taking again", status:"dormant",
-    changes:[
-      {cat:"world", text:"A scarce few settlements (3–8 a region) take root on the most-alive ground — precious, not a grid-fill"},
-      {cat:"world", text:"Towns grow into cities over time — the late-game payoff"},
-      {cat:"world", text:"Cities periodically clear a nearby forest for timber; biodiversity dips, then heals as the stand replants nearby and regrows"},
-      {cat:"world", text:"The forest drifts around the region as cities take and the land gives back — a living tension, not a death spiral"},
-      {cat:"world", text:"You can't settle dead ground, so life has to come first"},
-    ]},
-  { date:"PLANNED", ver:"—", title:"More to the story", sub:"ongoing", status:"dormant",
-    changes:[
-      {cat:"world", text:"Further narrative chapters and endings"},
-      {cat:"world", text:"The world's arc continues toward its conclusion"},
-    ]},
-  { date:"PLANNED", ver:"—", title:"Archive expansion", sub:"more to find", status:"dormant",
-    changes:[
-      {cat:"achievement", text:"More achievements"},
-      {cat:"achievement", text:"More fragments to recover"},
-    ]},
-  { date:"PLANNED", ver:"—", title:"Speedrun mode", sub:"clock + stats", status:"dormant",
-    changes:[
-      {cat:"system", text:"Real-time clock and a stats page"},
-      {cat:"economy", text:"Speed boost on later playthroughs"},
-    ]},
-  { date:"LATER", ver:"—", title:"Companion visual novel", sub:"a second story", status:"dormant",
-    changes:[
-      {cat:"world", text:"A companion visual novel set in the same world"},
-    ]},
-  { date:"DEFERRED", ver:"—", title:"Mobile support", sub:"after desktop", status:"dormant",
-    changes:[
-      {cat:"ui", text:"Touch / mobile play, once the desktop game is complete"},
-    ]},
-  { date:"OPTION", ver:"—", title:"Standalone build", sub:"download", status:"dormant",
-    changes:[
-      {cat:"system", text:"A downloadable standalone version"},
-    ]},
-];
+        let finalBytes = bytes;
+        if (entry.compressed) {
+          if (typeof DecompressionStream !== 'undefined') {
+            const ds = new DecompressionStream('gzip');
+            const writer = ds.writable.getWriter();
+            const reader = ds.readable.getReader();
+            writer.write(bytes);
+            writer.close();
+            const chunks = [];
+            let totalLen = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              totalLen += value.length;
+            }
+            finalBytes = new Uint8Array(totalLen);
+            let offset = 0;
+            for (const chunk of chunks) { finalBytes.set(chunk, offset); offset += chunk.length; }
+          } else {
+            console.warn('DecompressionStream not available, asset ' + uuid + ' may not render');
+          }
+        }
 
-const CATS = ["fix","world","economy","system","ui","achievement"];
-const active = new Set(CATS);
+        blobUrls[uuid] = URL.createObjectURL(new Blob([finalBytes], { type: entry.mime }));
+      } catch (err) {
+        console.error('Failed to decode asset ' + uuid + ':', err);
+        blobUrls[uuid] = URL.createObjectURL(new Blob([], { type: entry.mime }));
+      }
+    }));
 
-/* ---------- filter chips ---------- */
-const controls = document.getElementById("controls");
-CATS.forEach(c=>{
-  const b=document.createElement("button");
-  b.className="chip c-"+c; b.textContent=c; b.setAttribute("aria-pressed","true");
-  b.onclick=()=>{
-    if(active.has(c)){active.delete(c);b.setAttribute("aria-pressed","false");}
-    else{active.add(c);b.setAttribute("aria-pressed","true");}
-    applyFilter();
-  };
-  controls.appendChild(b);
-});
-const reset=document.createElement("button");
-reset.className="chip reset"; reset.textContent="reset";
-reset.onclick=()=>{active.clear();CATS.forEach(c=>active.add(c));
-  document.querySelectorAll(".chip:not(.reset)").forEach(b=>b.setAttribute("aria-pressed","true"));applyFilter();};
-controls.appendChild(reset);
+    const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
+    const extResources = extResEl ? JSON.parse(extResEl.textContent) : [];
+    const resourceMap = {};
+    for (const entry of extResources) {
+      if (blobUrls[entry.uuid]) resourceMap[entry.id] = blobUrls[entry.uuid];
+    }
 
-/* ---------- render ---------- */
-const tl=document.getElementById("timeline");
-const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    setStatus('Rendering...');
+    for (const uuid of uuids) template = template.split(uuid).join(blobUrls[uuid]);
 
-function liFor(ch){return `<li class="c-${ch.cat}" data-cat="${ch.cat}">${esc(ch.text)}</li>`;}
+    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
+    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
+    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
+    template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
 
-let curYear=null, curMonth=null, horizonDone=false;
-function addHeader(cls, label){
-  const h=document.createElement("div");
-  h.className=cls;
-  h.innerHTML = cls==="year-head"
-    ? `<span class="yr">${esc(label)}</span><span class="rule"></span>`
-    : esc(label);
-  tl.appendChild(h);
-}
+    const resourceScript = '<script>window.__resources = ' +
+      JSON.stringify(resourceMap).split('</' + 'script>').join('<\\/' + 'script>') +
+      ';</' + 'script>';
+    // Inject after <head> so the DOCTYPE stays first; prepending the script
+    // would push the parser into quirks mode. DOMParser always emits a <head>
+    // (synthesizing one if the source HTML omitted it) but may carry
+    // attributes through, so match the full opening tag. slice() rather than
+    // replace() keeps us clear of $-pattern substitution in resourceScript.
+    const headOpen = template.match(/<head[^>]*>/i);
+    if (headOpen) {
+      const i = headOpen.index + headOpen[0].length;
+      template = template.slice(0, i) + resourceScript + template.slice(i);
+    }
 
-ROADMAP.forEach(build=>{
-  // year / month / horizon dividers
-  if(build.year){
-    if(build.year!==curYear){ addHeader("year-head", build.year); curYear=build.year; curMonth=null; }
-    if(build.month && build.month!==curMonth){ addHeader("month-head", build.month); curMonth=build.month; }
-  } else if(!horizonDone){
-    addHeader("year-head future", "ON THE HORIZON"); horizonDone=true; curMonth=null;
+    // Parse the template and swap the root element. Scripts inserted via
+    // DOMParser/replaceWith are inert per spec — re-create each with
+    // createElement so they execute, awaiting onload for src scripts to
+    // preserve ordering (React before ReactDOM before Babel before text/babel).
+    const doc = new DOMParser().parseFromString(template, 'text/html');
+    document.documentElement.replaceWith(doc.documentElement);
+    const dead = Array.from(document.scripts);
+    for (const old of dead) {
+      const s = document.createElement('script');
+      for (const a of old.attributes) s.setAttribute(a.name, a.value);
+      s.textContent = old.textContent;
+      // text/babel scripts with a src: fetch and inline. transformScriptTags
+      // does XHR against the src, but blob:null/ from a file:// origin is
+      // silently dropped. Inlining makes it a plain inline babel script,
+      // which transformScriptTags handles unconditionally.
+      if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
+        const r = await fetch(s.src);
+        s.textContent = await r.text();
+        s.removeAttribute('src');
+      }
+      const p = s.src ? new Promise(function(r) { s.onload = s.onerror = r; }) : null;
+      old.replaceWith(s);
+      if (p) await p;
+    }
+    // Babel standalone auto-transforms type=text/babel on DOMContentLoaded,
+    // which fired before we swapped the document. Trigger manually if present.
+    if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
+      window.Babel.transformScriptTags();
+    }
+  } catch (err) {
+    setStatus('Error unpacking: ' + err.message);
+    console.error('Bundle unpack error:', err);
   }
-
-  const node=document.createElement("div");
-  node.className="node "+build.status;
-
-  let bodyHTML="";
-  if(build.sections){
-    build.sections.forEach(sec=>{
-      bodyHTML+=`<div class="section">
-        <div class="section-head">${esc(sec.name)}</div>
-        <ul class="changes">${sec.changes.map(liFor).join("")}</ul>
-      </div>`;
-    });
-  } else {
-    const groups={};
-    build.changes.forEach(ch=>{(groups[ch.cat]=groups[ch.cat]||[]).push(ch);});
-    CATS.forEach(c=>{
-      if(!groups[c]) return;
-      bodyHTML+=`<div class="cat-group" data-cat="${c}">
-        <div class="cat-label"><span class="cat-swatch c-${c}"></span>${c}</div>
-        <ul class="changes">${groups[c].map(liFor).join("")}</ul>
-      </div>`;
-    });
-  }
-
-  const current = build.current ? `<span class="node-current">CURRENT</span>` : "";
-  node.innerHTML=`
-    <span class="marker"></span>
-    <button class="node-head" aria-expanded="false">
-      <span class="node-date">${esc(build.date)}</span>
-      <span class="node-ver">${esc(build.ver)}</span>
-      <span class="node-title">${esc(build.title)} <span class="sub">· ${esc(build.sub)}</span>${current}</span>
-      <span class="node-status">${build.status}</span>
-      <span class="chev">▸</span>
-    </button>
-    <div class="body">${bodyHTML}</div>`;
-
-  const head=node.querySelector(".node-head");
-  head.onclick=()=>{const open=node.classList.toggle("open");head.setAttribute("aria-expanded",open);};
-  tl.appendChild(node);
 });
 
-/* open the current build by default */
-const cur=[...document.querySelectorAll(".node")].find(n=>n.querySelector(".node-current"));
-if(cur){cur.classList.add("open");cur.querySelector(".node-head").setAttribute("aria-expanded","true");}
+  </script>
 
-/* ---------- restoration index + spine front ---------- */
-(function setIndex(){
-  const total=ROADMAP.length;
-  const thriving=ROADMAP.filter(b=>b.status==="thriving").length;
-  const recov=ROADMAP.filter(b=>b.status==="recovering").length;
-  const pct=Math.round((thriving+recov*0.5)/total*100);
-  document.getElementById("indexPct").textContent=pct+"%";
-  document.getElementById("meterFill").style.width=(thriving/total*100)+"%";
-  document.getElementById("meterRecov").style.width=((thriving+recov)/total*100)+"%";
-  document.documentElement.style.setProperty("--front",((thriving+recov)/total*100)+"%");
-})();
+  <script type="__bundler/manifest">
+{}
+  </script>
 
-/* ---------- filtering ---------- */
-function applyFilter(){
-  document.querySelectorAll(".node").forEach(node=>{
-    let nodeVisible=0;
-    // simple category groups
-    node.querySelectorAll(".cat-group").forEach(g=>{
-      const show=active.has(g.dataset.cat);
-      g.classList.toggle("hidden",!show);
-      if(show) nodeVisible++;
-    });
-    // rich sections (filter per-li, hide empty sections)
-    node.querySelectorAll(".section").forEach(sec=>{
-      let secVisible=0;
-      sec.querySelectorAll("li").forEach(li=>{
-        const show=active.has(li.dataset.cat);
-        li.classList.toggle("hidden",!show);
-        if(show) secVisible++;
-      });
-      sec.classList.toggle("hidden",secVisible===0);
-      if(secVisible) nodeVisible++;
-    });
-    node.classList.toggle("dimmed",nodeVisible===0);
-  });
-}
-applyFilter();
+  <script type="__bundler/ext_resources">
+[]
+  </script>
 
-/* ---------- expand / collapse all ---------- */
-document.getElementById("expandAll").onclick=()=>document.querySelectorAll(".node").forEach(n=>{n.classList.add("open");n.querySelector(".node-head").setAttribute("aria-expanded","true");});
-document.getElementById("collapseAll").onclick=()=>document.querySelectorAll(".node").forEach(n=>{n.classList.remove("open");n.querySelector(".node-head").setAttribute("aria-expanded","false");});
-
-document.getElementById("stamp").textContent="// FEED · "+new Date().toISOString().slice(0,10);
-</script>
+  <script type="__bundler/template">
+"<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>RECLAMATION IDLE // ROADMAP<\u002Ftitle>\n<style>\n/* ============================================================\n   RECLAMATION IDLE — INTERACTIVE ROADMAP\n   Single file. No external assets.\n   Edit the ROADMAP array in the <script> block to maintain it.\n   ------------------------------------------------------------\n   status: 'thriving'(shipped) | 'recovering'(in progress) | 'dormant'(planned)\n   A build has EITHER  changes:[{cat,text}]            (simple, grouped by category)\n                  OR   sections:[{name,changes:[...]}] (rich, grouped by feature area)\n   cat: fix | world | economy | system | ui | achievement\n   ============================================================ */\n\n:root{\n  --bg:        #060a07;\n  --bg-panel:  #0c130e;\n  --line:      #15241a;\n  --grid:      #0e1812;\n\n  --thriving:  #4dffa6;\n  --thriving-glow: #00ff9c;\n  --recovering:#ffb454;\n  --recovering-glow:#ff8a00;\n  --dormant:   #5d6f63;\n\n  --ink:       #cdeede;\n  --ink-dim:   #7e9c8b;\n  --ink-faint: #4d6056;\n\n  --mono: ui-monospace, \"Cascadia Code\", \"JetBrains Mono\", \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace;\n}\n*{box-sizing:border-box}\nhtml,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--mono);}\nbody{\n  min-height:100vh;line-height:1.5;font-size:14px;\n  background-image:\n    linear-gradient(transparent 0%, rgba(0,255,156,.012) 50%, transparent 100%),\n    radial-gradient(120% 80% at 50% -10%, rgba(0,255,156,.05), transparent 60%);\n  -webkit-font-smoothing:antialiased;\n}\n\n/* ---- CRT overlay ---- */\n.crt{position:fixed;inset:0;pointer-events:none;z-index:9999;}\n.crt::before{content:\"\";position:absolute;inset:0;\n  background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 3px);\n  background-size:100% 3px;animation:scan 8s linear infinite;}\n.crt::after{content:\"\";position:absolute;inset:0;\n  background:radial-gradient(140% 120% at 50% 50%, transparent 60%, rgba(0,0,0,.55) 100%);}\n@keyframes scan{from{background-position:0 0}to{background-position:0 100px}}\n\n.wrap{max-width:880px;margin:0 auto;padding:40px 22px 120px;}\n\n/* ---- masthead ---- */\nheader{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:8px;}\n.eyebrow{font-size:11px;letter-spacing:.32em;color:var(--ink-dim);text-transform:uppercase;}\nh1{font-size:clamp(26px,6vw,46px);letter-spacing:.04em;margin:.18em 0 .1em;font-weight:700;\n  color:var(--thriving);text-shadow:0 0 14px rgba(0,255,156,.35);}\nh1 .slash{color:var(--ink-faint);font-weight:400;}\n.tagline{font-size:12px;color:var(--ink-dim);letter-spacing:.06em;}\n.cursor{display:inline-block;width:8px;height:14px;background:var(--thriving);margin-left:4px;vertical-align:-2px;animation:blink 1.1s steps(1) infinite;}\n@keyframes blink{50%{opacity:0}}\n\n/* ---- restoration index ---- */\n.index{margin:26px 0 4px;}\n.index-head{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px;}\n.index-head b{color:var(--thriving);font-size:13px;letter-spacing:.1em;}\n.meter{height:14px;border:1px solid var(--line);background:var(--grid);position:relative;overflow:hidden;}\n.meter-fill{height:100%;width:0;background:repeating-linear-gradient(90deg,var(--thriving) 0 7px,var(--thriving-glow) 7px 9px);box-shadow:0 0 12px rgba(0,255,156,.5);transition:width 1.1s cubic-bezier(.2,.8,.2,1);}\n.meter-recov{position:absolute;top:0;height:100%;background:repeating-linear-gradient(90deg,rgba(255,180,84,.55) 0 7px,rgba(255,138,0,.55) 7px 9px);transition:width 1.1s cubic-bezier(.2,.8,.2,1);}\n\n/* ---- controls ---- */\n.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:26px 0 24px;}\n.controls .lbl{font-size:10px;letter-spacing:.22em;color:var(--ink-faint);text-transform:uppercase;margin-right:4px;}\n.chip{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);background:transparent;border:1px solid var(--line);padding:5px 11px;cursor:pointer;transition:all .15s;}\n.chip:hover{border-color:var(--ink-faint);color:var(--ink);}\n.chip[aria-pressed=\"true\"]{color:var(--bg);border-color:var(--thriving);background:var(--thriving);text-shadow:none;box-shadow:0 0 10px rgba(0,255,156,.3);}\n.chip:focus-visible{outline:2px solid var(--thriving);outline-offset:2px;}\n.chip.reset{margin-left:auto;color:var(--ink-faint);}\n.chip.reset:hover{color:var(--recovering);border-color:var(--recovering);}\n\n/* ---- expand/collapse all ---- */\n.toolbar{display:flex;gap:14px;margin-bottom:24px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;}\n.toolbar button{background:none;border:none;color:var(--ink-faint);font-family:var(--mono);cursor:pointer;letter-spacing:inherit;text-transform:inherit;padding:0;}\n.toolbar button:hover{color:var(--thriving);}\n.toolbar button:focus-visible{outline:2px solid var(--thriving);outline-offset:2px;}\n\n/* ---- legend ---- */\n.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:34px;}\n.legend span{display:inline-flex;align-items:center;gap:7px;}\n.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}\n.dot.thriving{background:var(--thriving);box-shadow:0 0 8px var(--thriving-glow);}\n.dot.recovering{background:var(--recovering);box-shadow:0 0 8px var(--recovering-glow);}\n.dot.dormant{background:transparent;border:1px solid var(--dormant);}\n\n/* ---- timeline ---- */\n.timeline{position:relative;padding-left:34px;}\n.timeline::before{content:\"\";position:absolute;left:7px;top:6px;bottom:6px;width:2px;\n  background:linear-gradient(to bottom,var(--thriving) 0%,var(--thriving) var(--front,40%),var(--dormant) calc(var(--front,40%) + 14%),var(--grid) 100%);\n  box-shadow:0 0 10px rgba(0,255,156,.25);}\n\n/* ---- date dividers ---- */\n.year-head{display:flex;align-items:center;gap:14px;margin:30px 0 6px;}\n.year-head:first-child{margin-top:4px;}\n.year-head .yr{font-size:22px;font-weight:700;letter-spacing:.14em;color:var(--thriving);\n  text-shadow:0 0 12px rgba(0,255,156,.3);white-space:nowrap;}\n.year-head .rule{flex:1;height:1px;background:var(--line);}\n.year-head.future .yr{font-size:13px;letter-spacing:.28em;color:var(--dormant);text-shadow:none;}\n.month-head{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-dim);\n  margin:18px 0 9px;}\n\n.node{position:relative;margin-bottom:14px;}.node .marker{position:absolute;left:-34px;top:14px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid var(--dormant);z-index:2;transition:all .2s;}\n.node.thriving .marker{border-color:var(--thriving);background:var(--thriving);box-shadow:0 0 12px var(--thriving-glow);}\n.node.recovering .marker{border-color:var(--recovering);background:var(--recovering);box-shadow:0 0 14px var(--recovering-glow);animation:pulse 1.8s ease-in-out infinite;}\n@keyframes pulse{0%,100%{box-shadow:0 0 8px var(--recovering-glow)}50%{box-shadow:0 0 20px var(--recovering-glow)}}\n\n.node-head{width:100%;text-align:left;cursor:pointer;background:var(--bg-panel);border:1px solid var(--line);border-left-width:3px;border-left-color:var(--dormant);padding:13px 16px;display:flex;align-items:center;gap:14px;color:inherit;font-family:var(--mono);transition:all .18s;}\n.node.thriving .node-head{border-left-color:var(--thriving);}\n.node.recovering .node-head{border-left-color:var(--recovering);}\n.node-head:hover{background:#10180f;border-color:var(--ink-faint);}\n.node-head:focus-visible{outline:2px solid var(--thriving);outline-offset:2px;}\n\n.node-date{font-size:10px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;min-width:62px;flex-shrink:0;}\n.node-ver{font-size:16px;font-weight:700;letter-spacing:.04em;flex-shrink:0;min-width:50px;}\n.node.thriving .node-ver{color:var(--thriving);}\n.node.recovering .node-ver{color:var(--recovering);}\n.node.dormant .node-ver{color:var(--dormant);}\n.node-title{font-size:13px;color:var(--ink);letter-spacing:.02em;flex:1;min-width:0;}\n.node-title .sub{color:var(--ink-dim);font-size:11px;}\n.node-current{font-size:8px;letter-spacing:.2em;color:var(--recovering);border:1px solid var(--recovering);padding:2px 6px;margin-left:8px;white-space:nowrap;}\n.node-status{font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:3px 8px;border:1px solid currentColor;flex-shrink:0;}\n.node.thriving .node-status{color:var(--thriving);}\n.node.recovering .node-status{color:var(--recovering);}\n.node.dormant .node-status{color:var(--dormant);}\n.chev{flex-shrink:0;color:var(--ink-faint);font-size:11px;transition:transform .2s;}\n.node.open .chev{transform:rotate(90deg);color:var(--ink);}\n\n/* ---- detail body ---- */\n.body{display:none;border:1px solid var(--line);border-top:none;background:var(--grid);padding:4px 16px 12px;}\n.node.open .body{display:block;}\n\n/* simple (category-grouped) */\n.cat-group{padding:12px 0 6px;border-bottom:1px dashed var(--line);}\n.cat-group:last-child{border-bottom:none;}\n.cat-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:7px;color:var(--ink-dim);}\n.cat-swatch{width:8px;height:8px;display:inline-block;}\n\n/* rich (feature sections) */\n.section{padding:13px 0 8px;border-bottom:1px dashed var(--line);}\n.section:last-child{border-bottom:none;}\n.section-head{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--thriving);margin-bottom:9px;opacity:.92;}\n.node.dormant .section-head{color:var(--dormant);}\n\nul.changes{list-style:none;margin:0;padding:0;}\nul.changes li{font-size:13px;color:var(--ink);padding:3px 0 3px 16px;position:relative;border-left:2px solid var(--c,var(--ink-faint));margin-left:2px;}\n.node.dormant ul.changes li{color:var(--ink-dim);}\nul.changes li .tick{position:absolute;left:6px;color:var(--c,var(--ink-faint));opacity:.0}\n\n/* category accent colours */\n.c-fix        {--c:#ff6b6b}\n.c-world      {--c:#4dffa6}\n.c-economy    {--c:#ffd24d}\n.c-system     {--c:#6bb8ff}\n.c-ui         {--c:#c98bff}\n.c-achievement{--c:#ffb454}\n.cat-swatch.c-fix{background:#ff6b6b}.cat-swatch.c-world{background:#4dffa6}\n.cat-swatch.c-economy{background:#ffd24d}.cat-swatch.c-system{background:#6bb8ff}\n.cat-swatch.c-ui{background:#c98bff}.cat-swatch.c-achievement{background:#ffb454}\n\n/* filtered states */\n.cat-group.hidden,.section.hidden,li.hidden{display:none;}\n.node.dimmed{opacity:.3;filter:saturate(.4);}\n.node.dimmed .marker{filter:saturate(.3);}\n\nfooter{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);font-size:10px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}\n\n@media (max-width:560px){\n  .node-head{flex-wrap:wrap;gap:8px 12px;}\n  .node-title{flex-basis:100%;order:3;}\n  .node-status{order:2;}\n}\n@media (prefers-reduced-motion: reduce){\n  *{animation:none !important;transition:none !important;}\n}\n<\u002Fstyle>\n<\u002Fhead>\n\n<body>\n<div class=\"crt\" aria-hidden=\"true\"><\u002Fdiv>\n<div class=\"wrap\">\n  <header>\n    <div class=\"eyebrow\">BAQW STUDIOS // RECON FEED<\u002Fdiv>\n    <h1>RECLAMATION IDLE<span class=\"slash\"> // <\u002Fspan>ROADMAP<\u002Fh1>\n    <div class=\"tagline\">restoring a dead world, one build at a time<span class=\"cursor\"><\u002Fspan><\u002Fdiv>\n    <div class=\"index\">\n      <div class=\"index-head\"><span>RESTORATION INDEX<\u002Fspan><b id=\"indexPct\">0%<\u002Fb><\u002Fdiv>\n      <div class=\"meter\" role=\"progressbar\" aria-label=\"Roadmap restoration index\">\n        <div class=\"meter-recov\" id=\"meterRecov\"><\u002Fdiv>\n        <div class=\"meter-fill\" id=\"meterFill\"><\u002Fdiv>\n      <\u002Fdiv>\n    <\u002Fdiv>\n  <\u002Fheader>\n\n  <div class=\"controls\" id=\"controls\"><span class=\"lbl\">FILTER<\u002Fspan><\u002Fdiv>\n  <div class=\"toolbar\"><button id=\"expandAll\">[ + ] EXPAND ALL<\u002Fbutton><button id=\"collapseAll\">[ – ] COLLAPSE ALL<\u002Fbutton><\u002Fdiv>\n  <div class=\"legend\">\n    <span><i class=\"dot thriving\"><\u002Fi> Thriving · shipped<\u002Fspan>\n    <span><i class=\"dot recovering\"><\u002Fi> Recovering · in progress<\u002Fspan>\n    <span><i class=\"dot dormant\"><\u002Fi> Dormant · planned<\u002Fspan>\n  <\u002Fdiv>\n  <div class=\"timeline\" id=\"timeline\"><\u002Fdiv>\n  <footer><span>BAQW STUDIOS<\u002Fspan><span id=\"stamp\">// END OF FEED<\u002Fspan><\u002Ffooter>\n<\u002Fdiv>\n\n<script>\n/* ============================================================ DATA ============================================================ */\nconst ROADMAP = [\n  { year:2025, month:\"OCT\", date:\"12\", ver:\"PROTO\", title:\"Reclamation Idle — original prototype\", sub:\"Construct 2\", status:\"thriving\",\n    changes:[\n      {cat:\"world\", text:\"Scrap / crank reclaim mechanic\"},\n      {cat:\"world\", text:\"The original Construct 2 build — later rebuilt from scratch for v0.1\"},\n    ]},\n\n  { year:2026, month:\"MAY\", date:\"12\", ver:\"v0.1\", title:\"First build\", sub:\"the core loop\", status:\"thriving\",\n    changes:[\n      {cat:\"world\", text:\"Bunker + tile grid\"},\n      {cat:\"world\", text:\"Spreading reclamation across tiles\"},\n      {cat:\"world\", text:\"Bot mechanics — tiles reclaim over time\"},\n      {cat:\"world\", text:\"Live on itch.io\"},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"12\", ver:\"v0.2\", title:\"Fragments & decryption\", sub:\"the story arrives\", status:\"thriving\",\n    changes:[\n      {cat:\"world\", text:\"Fragment codex — recover and decrypt fragments, with a typewriter reveal in the terminal\"},\n      {cat:\"world\", text:\"Narrative log — the story unfolds as you play\"},\n      {cat:\"world\", text:\"A distant signal — something on the far side of the planet is still transmitting\"},\n      {cat:\"economy\", text:\"Shop expands — collectors, spreaders and buildings (Power Core, Storage Vault, Research Lab, Comms Array)\"},\n      {cat:\"economy\", text:\"Prestige & Legacy — Ecological Memory, Salvage Instinct, Warm Start (20+ thriving to restore)\"},\n      {cat:\"system\", text:\"Place your bunker anywhere on the world (cosmetic); offline progress; menu music\"},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"19\", ver:\"PATCH\", title:\"Bug patch\", sub:\"8 fixes\", status:\"thriving\",\n    changes:[\n      {cat:\"fix\", text:\"Decryption — softlock resolved\"},\n      {cat:\"fix\", text:\"Return to menu — now auto-saves\"},\n      {cat:\"fix\", text:\"Bots no longer stall on load\"},\n      {cat:\"fix\", text:\"Offline tiles colour in instantly\"},\n      {cat:\"fix\", text:\"Offline bot progress no longer overestimated\"},\n      {cat:\"fix\", text:\"Gather readout corrected\"},\n      {cat:\"fix\", text:\"Map drag clamps to the edges\"},\n      {cat:\"fix\", text:\"Location prompt no longer misfires\"},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"20\", ver:\"v0.3\", title:\"Make Contact\", sub:\"sandbox becomes a journey\", status:\"thriving\",\n    changes:[\n      {cat:\"world\", text:\"You can now reach the end — push the green out to the Antipode and ◉ MAKE CONTACT appears\"},\n      {cat:\"world\", text:\"Walk out of the bunker for the first time, decode the waiting transmission, and choose how the restored world ends\"},\n      {cat:\"world\", text:\"Two endings — and how you've played decides which you can reach\"},\n      {cat:\"economy\", text:\"Geography is the difficulty — the farther a tile is from the bunker, the more effort to reclaim; the frontier slows as it grows\"},\n      {cat:\"economy\", text:\"Reaching the Antipode now spans several restore points rather than a single afternoon — the curve the game always wanted\"},\n      {cat:\"economy\", text:\"Early-game shop filled out — fifth spreader (Biome Anchor) plus upgrade lines for spreaders, collectors and buildings\"},\n      {cat:\"economy\", text:\"Proper \\\"are you sure?\\\" confirmation before spending a restore point\"},\n      {cat:\"system\", text:\"Old saves retired automatically (quietly backed up) for a rebalance this large\"},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"22\", ver:\"v0.4\", title:\"The Regions Update\", sub:\"eight regions, terrain & themes\", status:\"thriving\",\n    sections:[\n      { name:\"Eight Regions & Feeds\", changes:[\n        {cat:\"world\", text:\"The world is now eight regions, unlocking outward from the bunker\"},\n        {cat:\"world\", text:\"Camera-feed switcher above the map — swap regions with a signal-static transition; each feed shows its live restore %\"},\n        {cat:\"world\", text:\"Regions you've unlocked keep being reclaimed while you watch another — and while you're away\"},\n        {cat:\"world\", text:\"A region nameplate fades in as you switch feeds\"},\n        {cat:\"economy\", text:\"Income is global — restored tiles across every region feed your resources, so expanding compounds\"},\n        {cat:\"world\", text:\"Each region unlocks as you restore the one before it\"},\n        {cat:\"economy\", text:\"Difficulty carries across regions — each new region starts harder than the last one ended\"},\n      ]},\n      { name:\"Terrain & Fleets\", changes:[\n        {cat:\"world\", text:\"Tiles now have terrain — soil, water, ash and sand — each with its own colours\"},\n        {cat:\"world\", text:\"Mixed regions show many colours at once: ash plains, blue rivers, green scrub on one map\"},\n        {cat:\"economy\", text:\"Each terrain has its own reclamation fleet instead of one bot type\"},\n        {cat:\"economy\", text:\"Fleets unlock alongside their regions; the spread phase is now REVIVE\"},\n        {cat:\"economy\", text:\"Per-fleet caps, each with their own Bay Expansions\"},\n        {cat:\"world\", text:\"Region 2 has a meandering river worked by the water fleet\"},\n      ]},\n      { name:\"Map & Visuals\", changes:[\n        {cat:\"ui\", text:\"The bunker now reads as a proper facility on the map, not a single pixel\"},\n        {cat:\"ui\", text:\"Themes restyle the interface only — never the land — so terrain stays readable\"},\n      ]},\n      { name:\"Economy — Upgrades, Legacy & Prestige\", changes:[\n        {cat:\"economy\", text:\"Upgrades are now repeatable — the old I / II caps are gone\"},\n        {cat:\"economy\", text:\"New upgrades — Reclaimer Bounty, All-Terrain Treads, Swarm Overclock, Manual Override, Restoration Index, Reclamation Logistics, Bunker AI Tuning\"},\n        {cat:\"economy\", text:\"Legacy is now prestige-only, spent on the restore screen and grouped into clear categories\"},\n        {cat:\"economy\", text:\"Legacy standouts — Overgrowth Engine (×2 RP), Salvage Singularity (×2 Parts), Time Capsule (no offline cap), Living Network (+output per region online)\"},\n        {cat:\"economy\", text:\"Prestige now rewards partly-restored tiles too, and previews exactly what you gain and keep\"},\n      ]},\n      { name:\"Idle & Time\", changes:[\n        {cat:\"economy\", text:\"Fast-forward speed control (1× / 2× / 4×); a legacy upgrade raises the cap further\"},\n        {cat:\"economy\", text:\"Offline progress — 8h base, extended by Storage Vault (removed entirely by Time Capsule); richer welcome-back summary\"},\n        {cat:\"ui\", text:\"Day/night cycle gently tints the map across each in-game day\"},\n      ]},\n      { name:\"Archive — Fragments, Achievements & Endings\", changes:[\n        {cat:\"achievement\", text:\"▤ ARCHIVE overlay with three tabs — Fragments, Achievements, Endings\"},\n        {cat:\"achievement\", text:\"Fragment codex — 13 fragments, a rereadable record; decrypt each to reveal its text and bonus\"},\n        {cat:\"achievement\", text:\"14 achievements, each a permanent bonus that carries across runs; hidden ones stay ???????? until earned\"},\n        {cat:\"achievement\", text:\"An endings gallery tracks which endings you've discovered\"},\n        {cat:\"system\", text:\"Achievements and endings you've seen are kept even if you start a new game\"},\n        {cat:\"ui\", text:\"Pop-up notifications for achievements and milestone moments\"},\n      ]},\n      { name:\"Main Menu & Onboarding\", changes:[\n        {cat:\"ui\", text:\"Menu is a composed recon dashboard — world thumbnail plus a status panel (run, tiles restored, regions online, signal)\"},\n        {cat:\"ui\", text:\"Tutorial shows once; HELP → RESET TUTORIAL replays it any time\"},\n        {cat:\"system\", text:\"Location asked once and remembered; new games skip the prompt\"},\n        {cat:\"ui\", text:\"Theme picker — Phosphor, Amber CRT, Cryo, Ultraviolet\"},\n        {cat:\"ui\", text:\"Hidden messages occasionally slip into the boot log\"},\n        {cat:\"economy\", text:\"Founder bonus — anyone with a pre-update save gets a permanent +10% output\"},\n      ]},\n      { name:\"Fixes\", changes:[\n        {cat:\"fix\", text:\"Fixed regions that could stall with reclaimable tiles left unworked\"},\n        {cat:\"fix\", text:\"Fixed newly-unlocked regions that wouldn't start reclaiming\"},\n        {cat:\"fix\", text:\"Changing your location in Settings no longer restarts the game\"},\n        {cat:\"fix\", text:\"Fixed progress from one region bleeding into another\"},\n        {cat:\"fix\", text:\"Fixed old saves showing broken restore-point costs, one-time upgrades not resetting, and a startup glitch\"},\n      ]},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"23\", ver:\"v0.6.1\", title:\"The Polish Pass\", sub:\"made to read like a finished product\", status:\"thriving\",\n    sections:[\n      { name:\"Interface Refinement\", changes:[\n        {cat:\"ui\", text:\"A cascade-wide polish layer — readable mid-tone body text, consistent radii and padding, and proper depth on panels and bars\"},\n        {cat:\"ui\", text:\"Richer interactive states — shop cards lift on hover, active tabs underline, the RECLAIM/GATHER buttons got fuller fills and glow\"},\n        {cat:\"ui\", text:\"Keyboard focus outlines added throughout\"},\n      ]},\n      { name:\"Topbar — Redesigned\", changes:[\n        {cat:\"ui\", text:\"Rebuilt into four clear zones — brand, resource rail, status console, controls — instead of one flat row\"},\n        {cat:\"ui\", text:\"Resources are now stacked stat cells; a centred feed-status panel anchors the middle with a live recon pulse\"},\n      ]},\n      { name:\"Main Menu — Redesigned\", changes:[\n        {cat:\"ui\", text:\"Bigger title card with real presence instead of floating tiny in the void\"},\n        {cat:\"ui\", text:\"A living recon backdrop drifts behind the card, picked fresh every load — bloom, coast, forest, ash plain, river or bunker\"},\n        {cat:\"ui\", text:\"Stronger primary buttons with accent fills and inner glow\"},\n      ]},\n      { name:\"Fixes\", changes:[\n        {cat:\"fix\", text:\"Map recon sweep rewritten so it no longer jumps and restarts mid-screen\"},\n      ]},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"24\", ver:\"v0.7\", title:\"The Quality-of-Life Pass\", sub:\"a deep comfort layer\", status:\"thriving\",\n    sections:[\n      { name:\"The SYSTEM Hub\", changes:[\n        {cat:\"system\", text:\"The flat settings modal is now a tabbed SYSTEM hub — SAVES · DISPLAY · CONTROLS · AUDIO · THEME · STATS · ABOUT\"},\n        {cat:\"system\", text:\"Music keeps its own dedicated on/off toggle, separate from the volume mixer\"},\n      ]},\n      { name:\"Saves & Transfer\", changes:[\n        {cat:\"system\", text:\"Three manual save slots with a metadata line and per-slot load / save / download\"},\n        {cat:\"system\", text:\"Rolling auto-backup snapshots your run every couple of minutes and keeps the last few\"},\n        {cat:\"system\", text:\"Full transfer — copy a code, paste a code, or download and upload a .save file\"},\n      ]},\n      { name:\"Display & Accessibility\", changes:[\n        {cat:\"ui\", text:\"UI scale (80–140%), reduce-motion, and high-contrast modes\"},\n        {cat:\"ui\", text:\"Colourblind-safe land palette that re-routes the red/green-confusable ramps\"},\n        {cat:\"ui\", text:\"Number notation toggle — abbreviated 1.2M vs scientific 1.2e6\"},\n      ]},\n      { name:\"Controls & Keyboard\", changes:[\n        {cat:\"system\", text:\"Keyboard shortcuts for reclaim, gather, speed, feed-cycling, archive and system\"},\n        {cat:\"system\", text:\"Every action key is rebindable and persists; an on-screen hint bar toggles with ?\"},\n      ]},\n      { name:\"In-Context Help\", changes:[\n        {cat:\"economy\", text:\"Income breakdown tooltips on RP and Parts — living tiles, deployed bots, multipliers and net\"},\n        {cat:\"economy\", text:\"Shop highlights the cheapest item you can afford and shows time-to-afford on the rest\"},\n        {cat:\"ui\", text:\"Shop sorting — default / cheapest / ready\"},\n      ]},\n      { name:\"Stats\", changes:[\n        {cat:\"system\", text:\"A STATS readout — this run, the whole world, and total playtime, live\"},\n      ]},\n    ]},\n\n  { year:2026, month:\"JUN\", date:\"26\", ver:\"ALPHA 1.0\", title:\"The Opening\", sub:\"the prototype becomes a game\", status:\"thriving\", current:true,\n    sections:[\n      { name:\"A Beginning\", changes:[\n        {cat:\"world\", text:\"The game now opens properly — a cold open in a bunker running on failing emergency power, before the terminal powers up panel by panel and hands you the controls\"},\n        {cat:\"world\", text:\"The placeholder onboarding is retired; the tutorial is now purely mechanical, and HELP → REPLAY INTRO replays the whole opening\"},\n      ]},\n      { name:\"The Caretaker's Voice\", changes:[\n        {cat:\"world\", text:\"A caretaker speaks to you as you work — on-screen, in the moment, reacting to what you reclaim\"},\n        {cat:\"world\", text:\"A permanent TRANSMISSIONS log keeps every message; a story spine now fires across all eight regions\"},\n      ]},\n      { name:\"The Endgame\", changes:[\n        {cat:\"world\", text:\"Ground Zero is a place you reach; the army tab opens when you get there\"},\n        {cat:\"world\", text:\"Three written endings, each read from the force you arrive with — no in-finale menu pick\"},\n        {cat:\"achievement\", text:\"The endings gallery tracks which of them you've found\"},\n      ]},\n      { name:\"Radiation & Decontamination\", changes:[\n        {cat:\"world\", text:\"Irradiated ground is the first hazard your normal fleets cannot cross — the front halts at the radiation line\"},\n        {cat:\"economy\", text:\"A new Decontamination fleet scrubs it clear; decontaminated ground then prepares faster as the payback for pushing through\"},\n      ]},\n      { name:\"Map & Themes\", changes:[\n        {cat:\"ui\", text:\"Dead ground now reads as a dull tint of its true colour and saturates up as you reclaim it, so a feed is legible the moment it comes online\"},\n        {cat:\"ui\", text:\"Four new dark themes — SIGNAL, STEEL, MONOCHROME and OXIDE — joining the original four; themes reskin the chrome only, never the land\"},\n      ]},\n      { name:\"Economy & Saves\", changes:[\n        {cat:\"economy\", text:\"Legacy is now depth-weighted — restore points reward how far you pushed, so reaching the deep regions genuinely pays\"},\n        {cat:\"system\", text:\"Old saves are retired automatically (quietly backed up) for a rebalance this size; pre-update veterans are recognised as founders with a permanent bonus\"},\n      ]},\n    ]},\n\n  /* ---------- DORMANT / PLANNED ---------- */\n  { date:\"PHASE 2\", ver:\"LIFE\", title:\"Regrowth\", sub:\"thriving is the start, not the finish\", status:\"dormant\",\n    changes:[\n      {cat:\"world\", text:\"A new LIFE tab joins your controls — guide regrowth across thriving land\"},\n      {cat:\"world\", text:\"Flora first — flowers and tufts, then trees, returning faster near other living ground\"},\n      {cat:\"world\", text:\"Forests rise where life runs deepest\"},\n      {cat:\"world\", text:\"Animal life returns once a region is richly regrown\"},\n      {cat:\"world\", text:\"A new per-region reading — Biodiversity — separate from how much land is thriving; a region can be all green but not yet teeming\"},\n      {cat:\"economy\", text:\"A second fill-bar to chase beyond reclamation\"},\n    ]},\n  { date:\"PHASE 3\", ver:\"BUILD\", title:\"Rebuild\", sub:\"life floods back — then starts taking again\", status:\"dormant\",\n    changes:[\n      {cat:\"world\", text:\"A scarce few settlements (3–8 a region) take root on the most-alive ground — precious, not a grid-fill\"},\n      {cat:\"world\", text:\"Towns grow into cities over time — the late-game payoff\"},\n      {cat:\"world\", text:\"Cities periodically clear a nearby forest for timber; biodiversity dips, then heals as the stand replants nearby and regrows\"},\n      {cat:\"world\", text:\"The forest drifts around the region as cities take and the land gives back — a living tension, not a death spiral\"},\n      {cat:\"world\", text:\"You can't settle dead ground, so life has to come first\"},\n    ]},\n  { date:\"PLANNED\", ver:\"—\", title:\"More to the story\", sub:\"ongoing\", status:\"dormant\",\n    changes:[\n      {cat:\"world\", text:\"Further narrative chapters and endings\"},\n      {cat:\"world\", text:\"The world's arc continues toward its conclusion\"},\n    ]},\n  { date:\"PLANNED\", ver:\"—\", title:\"Archive expansion\", sub:\"more to find\", status:\"dormant\",\n    changes:[\n      {cat:\"achievement\", text:\"More achievements\"},\n      {cat:\"achievement\", text:\"More fragments to recover\"},\n    ]},\n  { date:\"PLANNED\", ver:\"—\", title:\"Speedrun mode\", sub:\"clock + stats\", status:\"dormant\",\n    changes:[\n      {cat:\"system\", text:\"Real-time clock and a stats page\"},\n      {cat:\"economy\", text:\"Speed boost on later playthroughs\"},\n    ]},\n  { date:\"LATER\", ver:\"—\", title:\"Companion visual novel\", sub:\"a second story\", status:\"dormant\",\n    changes:[\n      {cat:\"world\", text:\"A companion visual novel set in the same world\"},\n    ]},\n  { date:\"DEFERRED\", ver:\"—\", title:\"Mobile support\", sub:\"after desktop\", status:\"dormant\",\n    changes:[\n      {cat:\"ui\", text:\"Touch / mobile play, once the desktop game is complete\"},\n    ]},\n  { date:\"OPTION\", ver:\"—\", title:\"Standalone build\", sub:\"download\", status:\"dormant\",\n    changes:[\n      {cat:\"system\", text:\"A downloadable standalone version\"},\n    ]},\n];\n\nconst CATS = [\"fix\",\"world\",\"economy\",\"system\",\"ui\",\"achievement\"];\nconst active = new Set(CATS);\n\n/* ---------- filter chips ---------- */\nconst controls = document.getElementById(\"controls\");\nCATS.forEach(c=>{\n  const b=document.createElement(\"button\");\n  b.className=\"chip c-\"+c; b.textContent=c; b.setAttribute(\"aria-pressed\",\"true\");\n  b.onclick=()=>{\n    if(active.has(c)){active.delete(c);b.setAttribute(\"aria-pressed\",\"false\");}\n    else{active.add(c);b.setAttribute(\"aria-pressed\",\"true\");}\n    applyFilter();\n  };\n  controls.appendChild(b);\n});\nconst reset=document.createElement(\"button\");\nreset.className=\"chip reset\"; reset.textContent=\"reset\";\nreset.onclick=()=>{active.clear();CATS.forEach(c=>active.add(c));\n  document.querySelectorAll(\".chip:not(.reset)\").forEach(b=>b.setAttribute(\"aria-pressed\",\"true\"));applyFilter();};\ncontrols.appendChild(reset);\n\n/* ---------- render ---------- */\nconst tl=document.getElementById(\"timeline\");\nconst esc=s=>String(s).replace(/&/g,\"&amp;\").replace(/<\u002Fg,\"&lt;\").replace(/>/g,\"&gt;\");\n\nfunction liFor(ch){return `<li class=\"c-${ch.cat}\" data-cat=\"${ch.cat}\">${esc(ch.text)}<\u002Fli>`;}\n\nlet curYear=null, curMonth=null, horizonDone=false;\nfunction addHeader(cls, label){\n  const h=document.createElement(\"div\");\n  h.className=cls;\n  h.innerHTML = cls===\"year-head\"\n    ? `<span class=\"yr\">${esc(label)}<\u002Fspan><span class=\"rule\"><\u002Fspan>`\n    : esc(label);\n  tl.appendChild(h);\n}\n\nROADMAP.forEach(build=>{\n  // year / month / horizon dividers\n  if(build.year){\n    if(build.year!==curYear){ addHeader(\"year-head\", build.year); curYear=build.year; curMonth=null; }\n    if(build.month && build.month!==curMonth){ addHeader(\"month-head\", build.month); curMonth=build.month; }\n  } else if(!horizonDone){\n    addHeader(\"year-head future\", \"ON THE HORIZON\"); horizonDone=true; curMonth=null;\n  }\n\n  const node=document.createElement(\"div\");\n  node.className=\"node \"+build.status;\n\n  let bodyHTML=\"\";\n  if(build.sections){\n    build.sections.forEach(sec=>{\n      bodyHTML+=`<div class=\"section\">\n        <div class=\"section-head\">${esc(sec.name)}<\u002Fdiv>\n        <ul class=\"changes\">${sec.changes.map(liFor).join(\"\")}<\u002Ful>\n      <\u002Fdiv>`;\n    });\n  } else {\n    const groups={};\n    build.changes.forEach(ch=>{(groups[ch.cat]=groups[ch.cat]||[]).push(ch);});\n    CATS.forEach(c=>{\n      if(!groups[c]) return;\n      bodyHTML+=`<div class=\"cat-group\" data-cat=\"${c}\">\n        <div class=\"cat-label\"><span class=\"cat-swatch c-${c}\"><\u002Fspan>${c}<\u002Fdiv>\n        <ul class=\"changes\">${groups[c].map(liFor).join(\"\")}<\u002Ful>\n      <\u002Fdiv>`;\n    });\n  }\n\n  const current = build.current ? `<span class=\"node-current\">CURRENT<\u002Fspan>` : \"\";\n  node.innerHTML=`\n    <span class=\"marker\"><\u002Fspan>\n    <button class=\"node-head\" aria-expanded=\"false\">\n      <span class=\"node-date\">${esc(build.date)}<\u002Fspan>\n      <span class=\"node-ver\">${esc(build.ver)}<\u002Fspan>\n      <span class=\"node-title\">${esc(build.title)} <span class=\"sub\">· ${esc(build.sub)}<\u002Fspan>${current}<\u002Fspan>\n      <span class=\"node-status\">${build.status}<\u002Fspan>\n      <span class=\"chev\">▸<\u002Fspan>\n    <\u002Fbutton>\n    <div class=\"body\">${bodyHTML}<\u002Fdiv>`;\n\n  const head=node.querySelector(\".node-head\");\n  head.onclick=()=>{const open=node.classList.toggle(\"open\");head.setAttribute(\"aria-expanded\",open);};\n  tl.appendChild(node);\n});\n\n/* open the current build by default */\nconst cur=[...document.querySelectorAll(\".node\")].find(n=>n.querySelector(\".node-current\"));\nif(cur){cur.classList.add(\"open\");cur.querySelector(\".node-head\").setAttribute(\"aria-expanded\",\"true\");}\n\n/* ---------- restoration index + spine front ---------- */\n(function setIndex(){\n  const total=ROADMAP.length;\n  const thriving=ROADMAP.filter(b=>b.status===\"thriving\").length;\n  const recov=ROADMAP.filter(b=>b.status===\"recovering\").length;\n  const pct=Math.round((thriving+recov*0.5)/total*100);\n  document.getElementById(\"indexPct\").textContent=pct+\"%\";\n  document.getElementById(\"meterFill\").style.width=(thriving/total*100)+\"%\";\n  document.getElementById(\"meterRecov\").style.width=((thriving+recov)/total*100)+\"%\";\n  document.documentElement.style.setProperty(\"--front\",((thriving+recov)/total*100)+\"%\");\n})();\n\n/* ---------- filtering ---------- */\nfunction applyFilter(){\n  document.querySelectorAll(\".node\").forEach(node=>{\n    let nodeVisible=0;\n    // simple category groups\n    node.querySelectorAll(\".cat-group\").forEach(g=>{\n      const show=active.has(g.dataset.cat);\n      g.classList.toggle(\"hidden\",!show);\n      if(show) nodeVisible++;\n    });\n    // rich sections (filter per-li, hide empty sections)\n    node.querySelectorAll(\".section\").forEach(sec=>{\n      let secVisible=0;\n      sec.querySelectorAll(\"li\").forEach(li=>{\n        const show=active.has(li.dataset.cat);\n        li.classList.toggle(\"hidden\",!show);\n        if(show) secVisible++;\n      });\n      sec.classList.toggle(\"hidden\",secVisible===0);\n      if(secVisible) nodeVisible++;\n    });\n    node.classList.toggle(\"dimmed\",nodeVisible===0);\n  });\n}\napplyFilter();\n\n/* ---------- expand / collapse all ---------- */\ndocument.getElementById(\"expandAll\").onclick=()=>document.querySelectorAll(\".node\").forEach(n=>{n.classList.add(\"open\");n.querySelector(\".node-head\").setAttribute(\"aria-expanded\",\"true\");});\ndocument.getElementById(\"collapseAll\").onclick=()=>document.querySelectorAll(\".node\").forEach(n=>{n.classList.remove(\"open\");n.querySelector(\".node-head\").setAttribute(\"aria-expanded\",\"false\");});\n\ndocument.getElementById(\"stamp\").textContent=\"// FEED · \"+new Date().toISOString().slice(0,10);\n<\u002Fscript>\n\n\n<\u002Fbody><\u002Fhtml>"
+  </script>
 </body>
 </html>
